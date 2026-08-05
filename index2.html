@@ -1,1 +1,121 @@
-index.h
+    ctx.fillStyle = '#FFD65C';
+    ctx.shadowColor = '#FFD65C'; ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.restore();
+    ctx.shadowBlur = 0;
+  }
+
+  function drawGhost(g){
+    var px = offX+g.x*tile+tile/2, py = offY+g.y*tile+tile/2;
+    var r = tile*0.42;
+    var color = g.color;
+    var flashing = g.state==='frightened' && frightTimer < 1.8 && Math.floor(animT*8)%2===0;
+    if (g.state === 'frightened') color = flashing ? '#EAF2FF' : '#3A5CFF';
+    if (g.state === 'eaten'){
+      // eyes only
+      drawEyes(px,py,r,g.dir);
+      return;
+    }
+    ctx.beginPath();
+    ctx.moveTo(px-r, py+r*0.6);
+    ctx.arc(px, py, r, Math.PI, 0);
+    ctx.lineTo(px+r, py+r*0.6);
+    var bumps = 4;
+    for (var i=bumps;i>=0;i--){
+      var bx = px + r - (2*r*i/bumps);
+      var by = py + r*0.6 + ((i%2===0)? r*0.35 : 0);
+      ctx.lineTo(bx, by);
+    }
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    drawEyes(px,py,r,g.dir);
+  }
+
+  function drawEyes(px,py,r,dir){
+    var ex = dir.dx*r*0.22, ey = dir.dy*r*0.22;
+    [-1,1].forEach(function(s){
+      ctx.beginPath();
+      ctx.fillStyle = '#fff';
+      ctx.arc(px+s*r*0.35, py-r*0.1, r*0.22, 0, Math.PI*2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.fillStyle = '#1a1a2e';
+      ctx.arc(px+s*r*0.35+ex*0.6, py-r*0.1+ey*0.6, r*0.11, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#04040F';
+    ctx.fillRect(0,0,W,H);
+    drawMaze();
+    if (running){
+      ghosts.forEach(drawGhost);
+      drawPlayer();
+    }
+  }
+
+  var lastTime = null;
+  function loop(t){
+    if (lastTime===null) lastTime = t;
+    var dt = Math.min((t-lastTime)/1000, 0.05);
+    lastTime = t;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function setDir(dx,dy){ player.next = {dx:dx, dy:dy}; }
+
+  document.addEventListener('keydown', function(e){
+    if (e.key==='ArrowUp' || e.key==='w' || e.key==='W') setDir(0,-1);
+    else if (e.key==='ArrowDown' || e.key==='s' || e.key==='S') setDir(0,1);
+    else if (e.key==='ArrowLeft' || e.key==='a' || e.key==='A') setDir(-1,0);
+    else if (e.key==='ArrowRight' || e.key==='d' || e.key==='D') setDir(1,0);
+  });
+
+  document.querySelectorAll('.dpad button').forEach(function(b){
+    var fn = function(e){ e.preventDefault(); setDir(+b.dataset.dx, +b.dataset.dy); };
+    b.addEventListener('touchstart', fn, {passive:false});
+    b.addEventListener('mousedown', fn);
+  });
+
+  var touchStartX=0, touchStartY=0, touching=false;
+  canvas.addEventListener('touchstart', function(e){ touching=true; touchStartX=e.touches[0].clientX; touchStartY=e.touches[0].clientY; }, {passive:true});
+  canvas.addEventListener('touchmove', function(e){
+    if (!touching) return;
+    var dx = e.touches[0].clientX-touchStartX, dy = e.touches[0].clientY-touchStartY;
+    if (Math.abs(dx)>24 || Math.abs(dy)>24){
+      if (Math.abs(dx)>Math.abs(dy)) setDir(dx>0?1:-1, 0);
+      else setDir(0, dy>0?1:-1);
+      touching=false;
+    }
+  }, {passive:true});
+
+  document.getElementById('startBtn').addEventListener('click', function(){
+    document.getElementById('startOverlay').classList.add('hidden');
+    resize();
+    reset();
+  });
+  document.getElementById('retryBtn').addEventListener('click', function(){
+    document.getElementById('overOverlay').classList.add('hidden');
+    resize();
+    reset();
+  });
+
+  resize();
+  running = false;
+  player = { x: PLAYER_START.x, y: PLAYER_START.y, dir:{dx:0,dy:0}, next:{dx:0,dy:0}, mouth:0 };
+  ghosts = GHOST_SPAWNS.map(function(s,i){ return { x:s.x, y:s.y, dir:{dx:0,dy:0}, color: GHOST_COLORS[i], state:'chase', release:0, spawnX:s.x, spawnY:s.y }; });
+  initLevel();
+  requestAnimationFrame(loop);
+  window.addEventListener('load', resize);
+})();
+</script>
+
+</body>
+</html>
