@@ -1,27 +1,4 @@
 {
-  "name": "pulsar-arcade",
-  "version": "1.0.0",
-  "description": "Pulsar Arcade - 15 Free Mini Games to Play Online",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"No tests specified\" && exit 0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/PasiduMayon/PULSAR-ARCADE.git"
-  },
-  "keywords": [
-    "games",
-    "arcade",
-    "browser-games",
-    "html5-games"
-  ],
-  "author": "Pulsar Arcade",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/PasiduMayon/PULSAR-ARCADE/issues"
-  },
-  "homepage": "https://github.com/PasiduMayon/PULSAR-ARCADE#readme",
   "dependencies": {
     "@vercel/analytics": "^2.0.1"
   }
